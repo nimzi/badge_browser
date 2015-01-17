@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="6252" systemVersion="14A389" minimumToolsVersion="Automatic" macOSVersion="Automatic" iOSVersion="Automatic">
+    <entity name="Badge" representedClassName="Badge">
+        <attribute name="absoluteURL" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="categoryId" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="compactDescription" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="extendedDescription" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="largeImage" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="points" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="smallImage" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="timeStamp" optional="YES" attributeType="Date">
+            <userInfo/>
+        </attribute>
+        <userInfo/>
+    </entity>
+    <elements>
+        <element name="Badge" positionX="0" positionY="0" width="0" height="0"/>
+    </elements>
+</model>
