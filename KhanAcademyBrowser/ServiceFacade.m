@@ -73,6 +73,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
   }
 }
 
+
 // Can never interfere with _becomeBusy
 -(BOOL) _becomeIdle {
   @synchronized (self) {
@@ -80,12 +81,28 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
       self.busy = NO;
       return YES;
     } else {
-      
-      // This isn't how you do error logging... but...
-      NSLog(@"WARNING: Someone asking Service to become Idle when NOT busy");
+      [NSException raise:@"InconsistendState" format:@"Someone asking Service to become Idle when NOT busy"];
       return NO;
     }
   }
+}
+
+
+-(void) _sendDidBecomeIdle {
+  __weak typeof(self) weakSelf = self;
+  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    [strongSelf.delegate serviceFacadeDidBecomeIdle:strongSelf];
+  }];
+}
+
+
+-(void) _sendDidBecomeBusy {
+  __weak typeof(self) weakSelf = self;
+  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    __strong typeof(weakSelf) strongSelf = weakSelf;
+    [strongSelf.delegate serviceFacadeDidBecomeBusy:strongSelf];
+  }];
 }
 
 #pragma mark -
@@ -107,6 +124,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
       [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         NSLog(@"Large image response: %@", responseObject);
+        entry.largeImage = UIImagePNGRepresentation(responseObject);
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
           [strongSelf.delegate serviceFacade:strongSelf
                            didLoadLargeImage:responseObject
@@ -126,6 +144,11 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
       [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
         __strong typeof(weakSelf) strongSelf = weakSelf;
         NSLog(@"Small image response: %@", responseObject);
+        
+        // Very inefficient because extra conversion: NSData -> Image -> NSData
+        // but trying to move quickly 
+        
+        entry.smallImage = UIImagePNGRepresentation(responseObject);    // Should be thread-safe
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
           [strongSelf.delegate serviceFacade:strongSelf
                            didLoadLargeImage:responseObject
@@ -146,20 +169,22 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
 
 -(void) refreshIfNotBusy {
   if ([self _becomeBusy]) {
+    [self _sendDidBecomeBusy];
     
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:self.serviceUrl];
     [request setHTTPMethod:@"GET"];
     [request setValue:@"application/json;charset=UTF-8" forHTTPHeaderField:@"content-type"];
     [request setTimeoutInterval:self.timeoutIntervalForManifest];
     
-    // Not strictly necessary at all since self is a logical singleton... but demoing that I
-    // get it
+    // Not strictly necessary to do weak/strong pattern at all since self is a singleton...
+    // but making it "pretty"
     __weak typeof(self) weakSelf = self;
     CompletionHandlerType manifestGrabber = ^(NSURLResponse *response, NSData *data, NSError *connectionError) {
       __strong typeof(weakSelf) strongSelf = weakSelf;
       if (strongSelf) {
         if (connectionError) {
           [strongSelf _becomeIdle];
+          [strongSelf _sendDidBecomeIdle];
         } else {
           NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
           NSInteger responseStatusCode = [httpResponse statusCode];
@@ -169,6 +194,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
             NSLog(@"WARNING: Status code = %ld", (long)responseStatusCode);
             NSLog(@"%@", [FTHTTPCodes descriptionForCode:responseStatusCode]);
             [strongSelf _becomeIdle];
+            [strongSelf _sendDidBecomeIdle];
           } else {
             NSError* parsingError = nil;
             NSArray* json = (nil == data) ? nil : [NSJSONSerialization JSONObjectWithData:data
@@ -178,10 +204,12 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
             if (parsingError or json == nil or not [json isKindOfClass:[NSArray class]]) {
               NSLog(@"WARNING: Inconsistend format");
               [strongSelf _becomeIdle];
+              [strongSelf _sendDidBecomeIdle];
             } else {
               if (not (json.count > 0)) {
                 NSLog(@"WARNING: Empty manifest");
                 [strongSelf _becomeIdle];
+                [strongSelf _sendDidBecomeIdle];
               } else {
                 NSMutableArray* ops = [NSMutableArray new];
                 for (NSDictionary* entry in json) {
@@ -198,10 +226,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
                 CallbackType join = ^(NSArray *operations) {
                   NSLog(@"Done with all operations");
                   [strongSelf _becomeIdle];
-                  
-                  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-                    [strongSelf.delegate serviceFacadeDidBecomeIdle:strongSelf];
-                  }];
+                  [strongSelf _sendDidBecomeIdle];
                 };
               
                 ProgressBlockType progress = ^(NSUInteger finishedCount, NSUInteger totalCount) {

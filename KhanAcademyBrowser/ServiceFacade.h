@@ -13,10 +13,12 @@
 @class BadgeProxy;
 
 @protocol ServiceFacadeDelegate<NSObject>
+
 -(void) serviceFacade:(ServiceFacade*)facade didLoadEntry:(BadgeProxy*)entry;
 -(void) serviceFacade:(ServiceFacade*)facade didLoadLargeImage:(UIImage*)image forEntry:(BadgeProxy*)entry;
 -(void) serviceFacade:(ServiceFacade*)facade didLoadSmallImage:(UIImage*)image forEntry:(BadgeProxy*)entry;
 
+-(void) serviceFacadeDidBecomeBusy:(ServiceFacade*)facade;
 -(void) serviceFacadeDidBecomeIdle:(ServiceFacade*)facade;
 @end
 

@@ -7,7 +7,7 @@
         <attribute name="extendedDescription" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="largeImage" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="largeImageURL" optional="YES" attributeType="String" syncable="YES"/>
-        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="name" attributeType="String" indexed="YES" syncable="YES"/>
         <attribute name="points" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="smallImage" optional="YES" attributeType="Binary" syncable="YES"/>
         <attribute name="smallImageURL" optional="YES" attributeType="String" syncable="YES"/>

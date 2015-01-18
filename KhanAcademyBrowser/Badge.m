@@ -23,7 +23,10 @@
 //        "translated_description" = Challenger;
 //        "translated_safe_extended_description" = "Complete a Computer Science Challenge";
 
-
+id strongCast(id obj, Class clz) {
+  if (obj == nil) return nil;
+  if ([obj isKindOfClass:clz]) return obj; else return nil;
+}
 
 
 @implementation Badge
@@ -43,48 +46,101 @@
 
 
 
-id strongCast(id obj, Class clz) {
-  if (obj == nil) return nil;
-  if ([obj isKindOfClass:clz]) return obj; else return nil;
-}
+
+@interface BadgeProxyImpl : NSObject<Badge>
+@property (strong) NSDate* timeStamp;
+@property (strong) NSString* absoluteURL;
+@property (strong) NSNumber* categoryId;
+@property (strong) NSString* compactDescription;
+@property (strong) NSString* extendedDescription;
+@property (strong) NSNumber* points;
+@property (strong) NSString* name;
+@property (strong) NSData* smallImage;
+@property (strong) NSData* largeImage;
+@property (strong) NSString* smallImageURL;
+@property (strong) NSString* largeImageURL;
+@end
+
+@implementation BadgeProxyImpl
+@end
+
+
+
+@interface BadgeProxy ()
+@property (strong) BadgeProxyImpl* impl;
+@end
 
 @implementation BadgeProxy
+- (instancetype)init {
+  _impl = [BadgeProxyImpl new];
+  return self;
+}
 
+#pragma mark -
 -(void) setTimeStamp:(NSDate *)timeStamp {
-  _timeStamp = strongCast(timeStamp, [NSDate class]);
+  _impl.timeStamp = strongCast(timeStamp, [NSDate class]);
 }
 
+-(NSDate*)timeStamp { return _impl.timeStamp; }
+
+#pragma mark -
 -(void) setAbsoluteURL:(NSString *)absoluteURL {
-  _absoluteURL = strongCast(absoluteURL, [NSString class]);
+  _impl.absoluteURL = strongCast(absoluteURL, [NSString class]);
 }
 
+-(NSString*) absoluteURL {
+  return _impl.absoluteURL;
+}
+
+#pragma mark -
 -(void) setCategoryId:(NSNumber *)categoryId {
-  _categoryId = strongCast(categoryId, [NSNumber class]);
+  _impl.categoryId = strongCast(categoryId, [NSNumber class]);
 }
 
+-(NSNumber*)categoryId { return _impl.categoryId; }
+
+#pragma mark -
 -(void) setCompactDescription:(NSString *)compactDescription {
-  _compactDescription = strongCast(compactDescription, [NSString class]);
+  _impl.compactDescription = strongCast(compactDescription, [NSString class]);
 }
 
+-(NSString*)compactDescription { return _impl.compactDescription; }
+
+#pragma mark -
 -(void) setExtendedDescription:(NSString *)extendedDescription {
-  _extendedDescription = strongCast(extendedDescription, [NSString class]);
+  _impl.extendedDescription = strongCast(extendedDescription, [NSString class]);
 }
 
+-(NSString*)extendedDescription { return _impl.extendedDescription; }
+
+#pragma mark -
 -(void) setPoints:(NSNumber *)points {
-  _points = strongCast(points, [NSNumber class]);
+  _impl.points = strongCast(points, [NSNumber class]);
 }
 
+-(NSNumber*) points { return _impl.points; }
+
+#pragma mark -
 -(void) setName:(NSString *)name {
-  _name = strongCast(name, [NSString class]);
+  _impl.name = strongCast(name, [NSString class]);
 }
 
+-(NSString*) name { return _impl.name; }
+
+#pragma mark -
 -(void) setSmallImageURL:(NSString *)smallImageURL {
-  _smallImageURL = strongCast(smallImageURL, [NSString class]);
+  _impl.smallImageURL = strongCast(smallImageURL, [NSString class]);
 }
 
+-(NSString*) smallImageURL { return _impl.smallImageURL; }
+
+
+#pragma mark -
 -(void) setLargeImageURL:(NSString *)largeImageURL {
-  _largeImageURL = strongCast(largeImageURL, [NSString class]);
+  _impl.largeImageURL = strongCast(largeImageURL, [NSString class]);
 }
+
+-(NSString*) largeImageURL { return _impl.largeImageURL; }
 
 
 
@@ -118,7 +174,52 @@ id strongCast(id obj, Class clz) {
 }
 
 
+
+-(void) _findIn:(NSManagedObjectContext*)moc {
+  
+}
+
+
+-(void) _sync {
+  if (_badge) {
+    
+  }
+}
+
+-(void) _insertNewBadgeInto:(NSManagedObjectContext*)moc {
+  //  NSEntityDescription *entity = [NSEntityDescription entityForName:@"Badge"
+  //                                            inManagedObjectContext:moc];
+  
+  _badge = [NSEntityDescription insertNewObjectForEntityForName:@"Badge"
+                                         inManagedObjectContext:moc];
+  
+  _badge.name = _impl.name;
+  
+  
+}
+
+-(void)upsert:(NSManagedObjectContext *)moc {
+  if (nil == _badge) {
+    [self _findIn:moc];
+    if (nil == _badge) {
+      [self _insertNewBadgeInto:moc];
+    }
+  }
+  
+  [self _sync];
+}
+
+
 @end
+
+
+
+
+
+
+
+
+
 
 
 

@@ -16,92 +16,77 @@
 @interface AppDelegate () <UISplitViewControllerDelegate, ServiceFacadeDelegate>
 @end
 
-@implementation AppDelegate
+@implementation AppDelegate {
+  //NSArray* _sortedBadges;
+}
 
+
+
+#pragma mark -
+
+//-(Badge*) _matchingBadgeForProxy:(BadgeProxy*)proxy {
+//  NSRange range = NSMakeRange(0, _sortedBadges.count);
+//  NSUInteger idx = [_sortedBadges indexOfObject:proxy inSortedRange:range options:NSBinarySearchingFirstEqual
+//                                usingComparator:^NSComparisonResult(id<Badge> l, id<Badge> r) {
+//                                return [l.name compare:r.name];
+//                              }];
+//  
+//  return  (NSNotFound == idx) ? nil : _sortedBadges[idx];
+//}
+//
+//-(void) _upsertProxy:(BadgeProxy*) proxy {
+//  
+//}
 
 #pragma mark ServiceFacadeDelegate
+
+
 
 -(void) serviceFacade:(ServiceFacade*)facade didLoadEntry:(BadgeProxy*)entry {
   NSLog(@"name=%@", entry.name);
   NSLog(@"image=%@", entry.smallImageURL);
   NSLog(@"image=%@", entry.largeImageURL);
   
+  if (entry.name.length > 0)
+    [entry upsert:self.managedObjectContext];
+  
 }
 
+
 -(void) serviceFacade:(ServiceFacade*)facade didLoadLargeImage:(UIImage*)image forEntry:(BadgeProxy*)entry {
+  if (entry.name.length > 0)
+    [entry upsert:self.managedObjectContext];
   
 }
 
 -(void) serviceFacade:(ServiceFacade*)facade didLoadSmallImage:(UIImage*)image forEntry:(BadgeProxy*)entry {
+  if (entry.name.length > 0)
+    [entry upsert:self.managedObjectContext];
   
 }
 
 -(void) serviceFacadeDidBecomeIdle:(ServiceFacade*)facade {
+  [self saveContext];
+  //_sortedBadges = nil;
   
+}
+
+-(void) serviceFacadeDidBecomeBusy:(ServiceFacade *)facade {
+//  NSSortDescriptor* descriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
+//  NSFetchRequest* req = [NSFetchRequest new];
+//  NSEntityDescription* entity = [NSEntityDescription entityForName:@"Badge" inManagedObjectContext:self.managedObjectContext];
+//  req.entity = entity;
+//  req.sortDescriptors = @[descriptor];
+//  
+//  NSError* err = nil;
+//  _sortedBadges = [self.managedObjectContext executeFetchRequest:req error:&err];
 }
 
 
 #pragma mark -
-//{
-//  UIImageView* _imgView;
-//}
-//
-//
-//- (void) junk {
-// 
-//   NSArray* imagesPaths = @[
-//      @"http://www.regentsprep.org/regents/math/geometry/gg2/soccerball.jpg",
-//      @"http://www.soccerballworld.com/images/Champsfinalesilver.jpg",
-//      @"http://www.hitpromo.net/imageManager/show/800/751_group.jpg",
-//      @"http://error"
-//      
-//    ];
-//  
-//  NSMutableArray* batch = [NSMutableArray new];
-//  
-//  for (id str in imagesPaths) {
-//    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:str]];
-//    AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:req];
-//    op.responseSerializer = [AFImageResponseSerializer serializer];
-//    [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-//      NSLog(@"Response: %@", responseObject);
-//      _imgView.image = responseObject;
-//      
-//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-//      NSLog(@"Image error: %@", error);
-//    }];
-//    
-//    [batch addObject:op];
-//  }
-//  
-//  
-//  NSArray* transformedBatch = [AFURLConnectionOperation batchOfRequestOperations:batch
-//                                       progressBlock:^(NSUInteger numberOfFinishedOperations, NSUInteger totalNumberOfOperations) {
-//                                         NSLog(@"Progress %lu of %lu", (unsigned long)numberOfFinishedOperations, (unsigned long)totalNumberOfOperations);
-//                                       } completionBlock:^(NSArray *operations) {
-//                                         NSLog(@"Done with all operations");
-//                                       }];
-//  
-//  [[NSOperationQueue mainQueue] addOperations:transformedBatch waitUntilFinished:NO];
-//
-//}
-//
-//
-//- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-//  
-//  UIViewController* vc = [UIViewController new];
-//  vc.view.backgroundColor = [UIColor greenColor];
-//  
-//  _imgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 500, 500)];
-//  [vc.view addSubview:_imgView];
-//  
-//  self.window.rootViewController = vc;
-//  [self junk];
-//  
-//  [ServiceFacade instance].delegate = self;
-//  
-//  return YES;
-//}
+
+
+
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   // Override point for customization after application launch.

@@ -44,6 +44,23 @@
   XCTAssert(!isQueueEmpty, @"Pass");
 }
 
+
+- (void) testBinarySearch {
+  
+  
+  NSArray* sortedArray = @[@"alpha", @"bettan", @"gamma", @"mu", @"rho", @"sigma"];
+  NSRange range = NSMakeRange(0, sortedArray.count);
+  
+  NSUInteger idx = [sortedArray indexOfObject:@"mu" inSortedRange:range options:NSBinarySearchingFirstEqual
+             usingComparator:^NSComparisonResult(NSString* l, NSString* r) {
+
+               
+               return [l compare:r];
+             }];
+  
+    XCTAssert(idx == 3, @"Pass");
+}
+
 //- (void)testFetch {
 //  AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
 //  __block BOOL didPass = NO;
@@ -120,25 +137,6 @@
 }
 
 
-//- (void)testFetchJSON {
-//  __block AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-//  __block BOOL didPass = NO;
-//  
-//  manager.requestSerializer = [AFJSONRequestSerializer serializer];
-//  [manager.requestSerializer setValue:@"Content-Type" forHTTPHeaderField:@"application/json"];
-//  [manager.requestSerializer setCachePolicy:NSURLRequestReloadIgnoringLocalCacheData];
-//  
-//  [manager GET:_url parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) {
-//    NSLog(@"JSON: %@", responseObject);
-//    didPass = YES;
-//  } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-//    NSLog(@"Error: %@", error);
-//  }];
-//  
-//  [manager.operationQueue waitUntilAllOperationsAreFinished];
-//  
-//  XCTAssert(didPass, @"Pass");
-//}
 
 
 
