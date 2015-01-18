@@ -6,15 +6,17 @@
         <attribute name="compactDescription" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="extendedDescription" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="largeImage" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="largeImageURL" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="points" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
         <attribute name="smallImage" optional="YES" attributeType="Binary" syncable="YES"/>
+        <attribute name="smallImageURL" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="timeStamp" optional="YES" attributeType="Date">
             <userInfo/>
         </attribute>
         <userInfo/>
     </entity>
     <elements>
-        <element name="Badge" positionX="0" positionY="0" width="0" height="0"/>
+        <element name="Badge" positionX="0" positionY="0" width="128" height="210"/>
     </elements>
 </model>

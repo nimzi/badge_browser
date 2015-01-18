@@ -9,19 +9,53 @@
 #import <Foundation/Foundation.h>
 #import <CoreData/CoreData.h>
 
+@protocol Badge <NSObject>
+@property (nonatomic, strong) NSDate* timeStamp;
+@property (nonatomic, strong) NSString* absoluteURL;
+@property (nonatomic, strong) NSNumber* categoryId;
+@property (nonatomic, strong) NSString* compactDescription;
+@property (nonatomic, strong) NSString* extendedDescription;
+@property (nonatomic, strong) NSNumber* points;
+@property (nonatomic, strong) NSString* name;
+@property (nonatomic, strong) NSData* smallImage;
+@property (nonatomic, strong) NSData* largeImage;
+@property (nonatomic, strong) NSString* smallImageURL;
+@property (nonatomic, strong) NSString* largeImageURL;
+@end
+
+
+
 
 @interface Badge : NSManagedObject
-
-@property (nonatomic, retain) NSDate * timeStamp;
-@property (nonatomic, retain) NSString * absoluteURL;
-@property (nonatomic, retain) NSNumber * categoryId;
-@property (nonatomic, retain) NSString * compactDescription;
-@property (nonatomic, retain) NSString * extendedDescription;
-@property (nonatomic, retain) NSNumber * points;
-@property (nonatomic, retain) NSString * name;
-@property (nonatomic, retain) NSData * smallImage;
-@property (nonatomic, retain) NSData * largeImage;
-
--(void) hydrateFromJSON:(NSDictionary*) json;
-
+@property (nonatomic, strong) NSDate* timeStamp;
+@property (nonatomic, strong) NSString* absoluteURL;
+@property (nonatomic, strong) NSNumber* categoryId;
+@property (nonatomic, strong) NSString* compactDescription;
+@property (nonatomic, strong) NSString* extendedDescription;
+@property (nonatomic, strong) NSNumber* points;
+@property (nonatomic, strong) NSString* name;
+@property (nonatomic, strong) NSData* smallImage;
+@property (nonatomic, strong) NSData* largeImage;
+@property (nonatomic, strong) NSString* smallImageURL;
+@property (nonatomic, strong) NSString* largeImageURL;
 @end
+
+
+@interface BadgeProxy : NSObject<Badge>
+@property (nonatomic, strong) NSDate* timeStamp;
+@property (nonatomic, strong) NSString* absoluteURL;
+@property (nonatomic, strong) NSNumber* categoryId;
+@property (nonatomic, strong) NSString* compactDescription;
+@property (nonatomic, strong) NSString* extendedDescription;
+@property (nonatomic, strong) NSNumber* points;
+@property (nonatomic, strong) NSString* name;
+@property (nonatomic, strong) NSData* smallImage;
+@property (nonatomic, strong) NSData* largeImage;
+@property (nonatomic, strong) NSString* smallImageURL;
+@property (nonatomic, strong) NSString* largeImageURL;
+
+@property (nonatomic, strong) Badge* badge;
+
++(instancetype) proxyFromJSON:(NSDictionary*)json;
+@end
+

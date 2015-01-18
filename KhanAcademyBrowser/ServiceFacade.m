@@ -1,8 +1,15 @@
 #import "ServiceFacade.h"
+#import "AFNetworking.h"
+#import "Badge.h"
+#import "FTHTTPCodes.h"
+
 #import <iso646.h>
 
 
 typedef void (^CompletionHandlerType)(NSURLResponse *response, NSData *data, NSError *connectionError);
+typedef void (^CallbackType)(NSArray* operations);
+typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInteger totalNumberOfOperations);
+
 
 @interface ServiceFacade()
 @property BOOL busy;
@@ -11,68 +18,21 @@ typedef void (^CompletionHandlerType)(NSURLResponse *response, NSData *data, NSE
 @property (readonly) NSTimeInterval timeoutIntervalForManifest;
 @property (readonly) NSTimeInterval timeoutIntervalForDetail;
 @property (readonly) NSTimeInterval timeoutIntervalForImages;
-
--(void) zeroDeficitReachedByAccumulator:(id)accumulator;
 @end
-
-
-
-
-@interface StatusAcumulator : NSObject
-@property NSInteger smallImageDeficit;
-@property NSInteger largeImageDeficit;
-@property (weak) id delegate;
-
--(void) smallImageArrived;
--(void) largeImageArrived;
--(void) imagesArrived;
-@end
-
-@implementation StatusAcumulator {
-  NSOperationQueue* _serialQueue;
-}
-
--(void) smallImageArrived {
-  [_serialQueue addOperationWithBlock:^{
-    self.smallImageDeficit = self.smallImageDeficit - 1;
-    [self signalIfNeeded]; }];
-}
-
--(void) largeImageArrived {
-  [_serialQueue addOperationWithBlock:^{
-    self.largeImageDeficit = self.largeImageDeficit - 1;
-    [self signalIfNeeded]; }];
-}
-
--(void) imagesArrived {
-  [self smallImageArrived];
-  [self largeImageArrived];
-}
-
--(void) signalIfNeeded {
-  if (_smallImageDeficit == 0 and _largeImageDeficit == 0) {
-    [_delegate zeroDeficitReachedByAccumulator:self];
-  }
-}
-
-
-- (instancetype)initWithSerialQueue:(NSOperationQueue*)qq delegate:(id)other {
-  self = [super init];
-  if (self) {
-    _serialQueue = qq;
-    _delegate = other;
-  }
-  return self;
-}
-
-@end
-
 
 
 
 @implementation ServiceFacade
 @synthesize serviceUrl=_serviceUrl;
 
++(instancetype) instance {
+  static ServiceFacade* shared = nil;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    shared = [[self alloc] init];
+  });
+  return shared;
+}
 
 - (instancetype)init {
   self = [super init];
@@ -89,9 +49,10 @@ typedef void (^CompletionHandlerType)(NSURLResponse *response, NSData *data, NSE
     
     self.firstStageQ = [NSOperationQueue new];
     self.firstStageQ.maxConcurrentOperationCount = 1;
+    
     self.secondStageQ = [NSOperationQueue new];
-    self.secondStageQ.maxConcurrentOperationCount = 1;
-
+    self.secondStageQ.maxConcurrentOperationCount = 32;
+    
   }
   return self;
 }
@@ -127,122 +88,133 @@ typedef void (^CompletionHandlerType)(NSURLResponse *response, NSData *data, NSE
   }
 }
 
+#pragma mark -
 
--(void) zeroDeficitReachedByAccumulator:(id)accumulator {
-  [self _becomeIdle];
-}
-
-
-
-
-/*
-typedef void (^SimpleClosureType)(void);
-typedef NSArray* ClosureArray;
-typedef ClosureArray (^ForkingHandlerType)(NSURLResponse *response, NSData *data, NSError *connectionError);
-typedef void (^JoinHandlerType)(void);
-
-
-// Note queue must be synchronous
-+ (void)sendAsynchronousRequest:(NSURLRequest*) request
-                          queue:(NSOperationQueue*) synchronousQueue
-                 forkingHandler:(ForkingHandlerType) forker
-                    joinHandler:(JoinHandlerType) joiner
-{
+-(NSArray*) _operationsForBadge:(BadgeProxy*)entry {
   
+  NSMutableArray* ops = [@[] mutableCopy];
   
-  id forkerCopy = [forker copy]; // Necessary??
-  id joinerCopy = [joiner copy]; // ??
-  
-  
-  __block NSInteger counter = 0;
-  
-  CompletionHandlerType handler = ^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-    NSArray* closures = forker(response, data, connectionError);
-    if (closures.count > 0) {
-      counter = closures.count;
-      for (SimpleClosure returnedBlock in closures)
-        [synchronousQueue addOperationWithBlock:^{
-          returnedBlock();
-          
+  if (entry.name) {
+    NSURL* urlForLarge = entry.largeImageURL ? [NSURL URLWithString:entry.largeImageURL] : nil;
+    NSURL* urlForSmall = entry.smallImageURL ? [NSURL URLWithString:entry.smallImageURL] : nil;
+    
+    __weak typeof(self) weakSelf = self;
+    
+    if (urlForLarge) {
+      NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:urlForLarge];
+      AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:req];
+      op.responseSerializer = [AFImageResponseSerializer serializer];
+      [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        NSLog(@"Large image response: %@", responseObject);
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+          [strongSelf.delegate serviceFacade:strongSelf
+                           didLoadLargeImage:responseObject
+                                    forEntry:entry];
         }];
+      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Image error: %@", error);
+      }];
       
+      [ops addObject:op];
     }
-  };
-  
-  [NSURLConnection sendAsynchronousRequest:request
-                                     queue:synchronousQueue
-                         completionHandler:handler];
-  
-}
-
-*/
-
-
-
--(void) _processEntry:(NSDictionary*)entry
-           accumulator:(StatusAcumulator*)status {
-  
-  if (not [entry isKindOfClass:[NSDictionary class]]) {
-    [status imagesArrived];
-  } else {
-    id pathToLarge = [entry valueForKeyPath:@"icons.large"];
-    id pathToSmall = [entry valueForKeyPath:@"icons.compact"];
     
-    NSURL* urlForLarge = (pathToLarge) ? [NSURL URLWithString:pathToLarge] : nil;
-    NSURL* urlForSmall = (pathToSmall) ? [NSURL URLWithString:pathToSmall] : nil;
-    
-    
+    if (urlForSmall) {
+      NSMutableURLRequest* req = [NSMutableURLRequest requestWithURL:urlForSmall];
+      AFHTTPRequestOperation* op = [[AFHTTPRequestOperation alloc] initWithRequest:req];
+      op.responseSerializer = [AFImageResponseSerializer serializer];
+      [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+        __strong typeof(weakSelf) strongSelf = weakSelf;
+        NSLog(@"Small image response: %@", responseObject);
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+          [strongSelf.delegate serviceFacade:strongSelf
+                           didLoadLargeImage:responseObject
+                                    forEntry:entry];
+        }];
+      } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+        NSLog(@"Image error: %@", error);
+      }];
+      
+      [ops addObject:op];
+    }
   }
   
-  
-  
-  
-  
+  return ops;
 }
 
 
 
 -(void) refreshIfNotBusy {
   if ([self _becomeBusy]) {
-  
+    
     NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:self.serviceUrl];
     [request setHTTPMethod:@"GET"];
     [request setValue:@"application/json;charset=UTF-8" forHTTPHeaderField:@"content-type"];
     [request setTimeoutInterval:self.timeoutIntervalForManifest];
     
-    
-    StatusAcumulator* status = [[StatusAcumulator alloc] initWithSerialQueue:self.firstStageQ
-                                                                    delegate:self];
-    
+    // Not strictly necessary at all since self is a logical singleton... but demoing that I
+    // get it
+    __weak typeof(self) weakSelf = self;
     CompletionHandlerType manifestGrabber = ^(NSURLResponse *response, NSData *data, NSError *connectionError) {
-      if (connectionError) {
-        [self _becomeIdle];
-      } else {
-        NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
-        NSInteger responseStatusCode = [httpResponse statusCode];
-        
-        if (responseStatusCode != 400) {
-          //Just to make sure, it works or not
-          NSLog(@"WARNING: Status code = %ld", (long)responseStatusCode);
-          [self _becomeIdle];
+      __strong typeof(weakSelf) strongSelf = weakSelf;
+      if (strongSelf) {
+        if (connectionError) {
+          [strongSelf _becomeIdle];
         } else {
-          NSError* parsingError = nil;
-          NSArray* json = (nil == data) ? nil : [NSJSONSerialization JSONObjectWithData:data
-                                                                                options:0
-                                                                                  error:&parsingError];
+          NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
+          NSInteger responseStatusCode = [httpResponse statusCode];
           
-          if (parsingError or json == nil or not [json isKindOfClass:[NSArray class]]) {
-            NSLog(@"WARNING: Inconsistend format");
-            [self _becomeIdle];
+          if (responseStatusCode != HTTPCode200OK) {
+            //Just to make sure, it works or not
+            NSLog(@"WARNING: Status code = %ld", (long)responseStatusCode);
+            NSLog(@"%@", [FTHTTPCodes descriptionForCode:responseStatusCode]);
+            [strongSelf _becomeIdle];
           } else {
-            if (not (json.count > 0)) {
-              NSLog(@"WARNING: Empty manifest");
-              [self _becomeIdle];
+            NSError* parsingError = nil;
+            NSArray* json = (nil == data) ? nil : [NSJSONSerialization JSONObjectWithData:data
+                                                                                  options:0
+                                                                                    error:&parsingError];
+            
+            if (parsingError or json == nil or not [json isKindOfClass:[NSArray class]]) {
+              NSLog(@"WARNING: Inconsistend format");
+              [strongSelf _becomeIdle];
             } else {
-              status.largeImageDeficit = (status.smallImageDeficit = json.count);
-              for (NSDictionary* entry in json) {
-                [self _processEntry:entry
-                        accumulator:status];
+              if (not (json.count > 0)) {
+                NSLog(@"WARNING: Empty manifest");
+                [strongSelf _becomeIdle];
+              } else {
+                NSMutableArray* ops = [NSMutableArray new];
+                for (NSDictionary* entry in json) {
+                  BadgeProxy* bproxy = [BadgeProxy proxyFromJSON:entry];
+                  if (bproxy) {
+                    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                      [strongSelf.delegate serviceFacade:strongSelf didLoadEntry:bproxy];
+                    }];
+                    [ops addObjectsFromArray:[strongSelf _operationsForBadge:bproxy]];
+                  }
+                }
+                
+                
+                CallbackType join = ^(NSArray *operations) {
+                  NSLog(@"Done with all operations");
+                  [strongSelf _becomeIdle];
+                  
+                  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+                    [strongSelf.delegate serviceFacadeDidBecomeIdle:strongSelf];
+                  }];
+                };
+              
+                ProgressBlockType progress = ^(NSUInteger finishedCount, NSUInteger totalCount) {
+                  NSLog(@"Progress %lu of %lu", (unsigned long)finishedCount, (unsigned long)totalCount);
+                };
+
+                
+                id transformedBatch = [AFURLConnectionOperation batchOfRequestOperations:ops
+                                                                           progressBlock:progress
+                                                                         completionBlock:join];
+                
+                [strongSelf.secondStageQ addOperations:transformedBatch waitUntilFinished:NO];
+                
               }
             }
           }

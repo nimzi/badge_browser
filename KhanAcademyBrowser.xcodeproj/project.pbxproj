@@ -13,6 +13,7 @@
 		DA14389D1A68C16C007E1DC6 /* Amoeba.m in Sources */ = {isa = PBXBuildFile; fileRef = DA14389B1A68C16C007E1DC6 /* Amoeba.m */; };
 		DA1438A01A68C8B1007E1DC6 /* Badge.m in Sources */ = {isa = PBXBuildFile; fileRef = DA14389F1A68C8B1007E1DC6 /* Badge.m */; };
 		DA1438A11A68C8B1007E1DC6 /* Badge.m in Sources */ = {isa = PBXBuildFile; fileRef = DA14389F1A68C8B1007E1DC6 /* Badge.m */; };
+		DA5066A71A6B58AA00E5819B /* FTHTTPCodes.m in Sources */ = {isa = PBXBuildFile; fileRef = DA5066A61A6B58AA00E5819B /* FTHTTPCodes.m */; };
 		DA704B531A684C0100AE1E44 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DA704B521A684C0100AE1E44 /* main.m */; };
 		DA704B561A684C0100AE1E44 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DA704B551A684C0100AE1E44 /* AppDelegate.m */; };
 		DA704B591A684C0100AE1E44 /* KhanAcademyBrowser.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = DA704B571A684C0100AE1E44 /* KhanAcademyBrowser.xcdatamodeld */; };
@@ -59,6 +60,8 @@
 		DA14389B1A68C16C007E1DC6 /* Amoeba.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Amoeba.m; path = KhanAcademyBrowser/Amoeba.m; sourceTree = "<group>"; };
 		DA14389E1A68C8B1007E1DC6 /* Badge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Badge.h; sourceTree = "<group>"; };
 		DA14389F1A68C8B1007E1DC6 /* Badge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Badge.m; sourceTree = "<group>"; };
+		DA5066A51A6B58AA00E5819B /* FTHTTPCodes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FTHTTPCodes.h; sourceTree = "<group>"; };
+		DA5066A61A6B58AA00E5819B /* FTHTTPCodes.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FTHTTPCodes.m; sourceTree = "<group>"; };
 		DA704B4D1A684C0100AE1E44 /* KhanAcademyBrowser.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KhanAcademyBrowser.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DA704B511A684C0100AE1E44 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DA704B521A684C0100AE1E44 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -114,9 +117,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DA5066A41A6B58AA00E5819B /* HTTPStatusCodes */ = {
+			isa = PBXGroup;
+			children = (
+				DA5066A51A6B58AA00E5819B /* FTHTTPCodes.h */,
+				DA5066A61A6B58AA00E5819B /* FTHTTPCodes.m */,
+			);
+			path = HTTPStatusCodes;
+			sourceTree = "<group>";
+		};
 		DA704B441A684C0100AE1E44 = {
 			isa = PBXGroup;
 			children = (
+				DA5066A41A6B58AA00E5819B /* HTTPStatusCodes */,
 				DA14389A1A68C16C007E1DC6 /* Amoeba.h */,
 				DA14389B1A68C16C007E1DC6 /* Amoeba.m */,
 				DA704B7C1A688BCD00AE1E44 /* AFNetworking */,
@@ -309,6 +322,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DA5066A71A6B58AA00E5819B /* FTHTTPCodes.m in Sources */,
 				DA704B9A1A688BCD00AE1E44 /* AFURLConnectionOperation.m in Sources */,
 				DA704B901A688BCD00AE1E44 /* AFHTTPRequestOperation.m in Sources */,
 				DA704B961A688BCD00AE1E44 /* AFNetworkReachabilityManager.m in Sources */,

@@ -37,17 +37,89 @@
 @dynamic name;
 @dynamic smallImage;
 @dynamic largeImage;
+@dynamic smallImageURL;
+@dynamic largeImageURL;
+@end
 
 
 
+id strongCast(id obj, Class clz) {
+  if (obj == nil) return nil;
+  if ([obj isKindOfClass:clz]) return obj; else return nil;
+}
 
--(void) hydrateFromJSON:(NSDictionary*) json {
-  
+@implementation BadgeProxy
+
+-(void) setTimeStamp:(NSDate *)timeStamp {
+  _timeStamp = strongCast(timeStamp, [NSDate class]);
+}
+
+-(void) setAbsoluteURL:(NSString *)absoluteURL {
+  _absoluteURL = strongCast(absoluteURL, [NSString class]);
+}
+
+-(void) setCategoryId:(NSNumber *)categoryId {
+  _categoryId = strongCast(categoryId, [NSNumber class]);
+}
+
+-(void) setCompactDescription:(NSString *)compactDescription {
+  _compactDescription = strongCast(compactDescription, [NSString class]);
+}
+
+-(void) setExtendedDescription:(NSString *)extendedDescription {
+  _extendedDescription = strongCast(extendedDescription, [NSString class]);
+}
+
+-(void) setPoints:(NSNumber *)points {
+  _points = strongCast(points, [NSNumber class]);
+}
+
+-(void) setName:(NSString *)name {
+  _name = strongCast(name, [NSString class]);
+}
+
+-(void) setSmallImageURL:(NSString *)smallImageURL {
+  _smallImageURL = strongCast(smallImageURL, [NSString class]);
+}
+
+-(void) setLargeImageURL:(NSString *)largeImageURL {
+  _largeImageURL = strongCast(largeImageURL, [NSString class]);
 }
 
 
 
+
+
++(instancetype) proxyFromJSON:(NSDictionary*)json {
+  BadgeProxy* proxy = nil;
+  json = strongCast(json, [NSDictionary class]);
+  if (json) {
+    proxy = [BadgeProxy new];
+    
+    // `valueForKey` is more efficient than `valueForKeyPath`, so no
+    // harm in optimizing a bit :)
+    //
+    proxy.absoluteURL = json[@"absolute_url"];
+    proxy.name = json[@"name"];
+    proxy.points = json[@"points"];
+    proxy.categoryId = json[@"badge_category"];
+    proxy.compactDescription = json[@"description"];
+    proxy.extendedDescription = json[@"safe_extended_description"];
+    
+    proxy.smallImageURL = [json valueForKeyPath:@"icons.compact"];
+    proxy.largeImageURL = [json valueForKeyPath:@"icons.large"];
+    
+    proxy.timeStamp = [NSDate date];
+    
+  }
+  
+  
+  return proxy;
+}
+
+
 @end
+
 
 
 

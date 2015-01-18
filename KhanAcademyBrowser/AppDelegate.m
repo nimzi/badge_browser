@@ -10,70 +10,100 @@
 #import "DetailViewController.h"
 #import "MasterViewController.h"
 #import "AFNetworking.h"
+#import "ServiceFacade.h"
+#import "Badge.h"
 
-@interface AppDelegate () <UISplitViewControllerDelegate>
-
+@interface AppDelegate () <UISplitViewControllerDelegate, ServiceFacadeDelegate>
 @end
 
-@implementation AppDelegate {
-  UIImageView* _imgView;
+@implementation AppDelegate
+
+
+#pragma mark ServiceFacadeDelegate
+
+-(void) serviceFacade:(ServiceFacade*)facade didLoadEntry:(BadgeProxy*)entry {
+  NSLog(@"name=%@", entry.name);
+  NSLog(@"image=%@", entry.smallImageURL);
+  NSLog(@"image=%@", entry.largeImageURL);
+  
+}
+
+-(void) serviceFacade:(ServiceFacade*)facade didLoadLargeImage:(UIImage*)image forEntry:(BadgeProxy*)entry {
+  
+}
+
+-(void) serviceFacade:(ServiceFacade*)facade didLoadSmallImage:(UIImage*)image forEntry:(BadgeProxy*)entry {
+  
+}
+
+-(void) serviceFacadeDidBecomeIdle:(ServiceFacade*)facade {
+  
 }
 
 
-- (void) junk {
- 
-   NSArray* imagesPaths = @[
-      @"http://www.regentsprep.org/regents/math/geometry/gg2/soccerball.jpg",
-      @"http://www.soccerballworld.com/images/Champsfinalesilver.jpg",
-      @"http://www.hitpromo.net/imageManager/show/800/751_group.jpg",
-      @"http://error"
-      
-    ];
-  
-  NSMutableArray* batch = [NSMutableArray new];
-  
-  for (id str in imagesPaths) {
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:str]];
-    AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:req];
-    op.responseSerializer = [AFImageResponseSerializer serializer];
-    [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
-      NSLog(@"Response: %@", responseObject);
-      _imgView.image = responseObject;
-      
-    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-      NSLog(@"Image error: %@", error);
-    }];
-    
-    [batch addObject:op];
-  }
-  
-  
-  NSArray* transformedBatch = [AFURLConnectionOperation batchOfRequestOperations:batch
-                                       progressBlock:^(NSUInteger numberOfFinishedOperations, NSUInteger totalNumberOfOperations) {
-                                         NSLog(@"Progress %lu of %lu", (unsigned long)numberOfFinishedOperations, (unsigned long)totalNumberOfOperations);
-                                       } completionBlock:^(NSArray *operations) {
-                                         NSLog(@"Done with all operations");
-                                       }];
-  
-  [[NSOperationQueue mainQueue] addOperations:transformedBatch waitUntilFinished:NO];
-
-}
-
+#pragma mark -
+//{
+//  UIImageView* _imgView;
+//}
+//
+//
+//- (void) junk {
+// 
+//   NSArray* imagesPaths = @[
+//      @"http://www.regentsprep.org/regents/math/geometry/gg2/soccerball.jpg",
+//      @"http://www.soccerballworld.com/images/Champsfinalesilver.jpg",
+//      @"http://www.hitpromo.net/imageManager/show/800/751_group.jpg",
+//      @"http://error"
+//      
+//    ];
+//  
+//  NSMutableArray* batch = [NSMutableArray new];
+//  
+//  for (id str in imagesPaths) {
+//    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:str]];
+//    AFHTTPRequestOperation *op = [[AFHTTPRequestOperation alloc] initWithRequest:req];
+//    op.responseSerializer = [AFImageResponseSerializer serializer];
+//    [op setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+//      NSLog(@"Response: %@", responseObject);
+//      _imgView.image = responseObject;
+//      
+//    } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+//      NSLog(@"Image error: %@", error);
+//    }];
+//    
+//    [batch addObject:op];
+//  }
+//  
+//  
+//  NSArray* transformedBatch = [AFURLConnectionOperation batchOfRequestOperations:batch
+//                                       progressBlock:^(NSUInteger numberOfFinishedOperations, NSUInteger totalNumberOfOperations) {
+//                                         NSLog(@"Progress %lu of %lu", (unsigned long)numberOfFinishedOperations, (unsigned long)totalNumberOfOperations);
+//                                       } completionBlock:^(NSArray *operations) {
+//                                         NSLog(@"Done with all operations");
+//                                       }];
+//  
+//  [[NSOperationQueue mainQueue] addOperations:transformedBatch waitUntilFinished:NO];
+//
+//}
+//
+//
+//- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+//  
+//  UIViewController* vc = [UIViewController new];
+//  vc.view.backgroundColor = [UIColor greenColor];
+//  
+//  _imgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 500, 500)];
+//  [vc.view addSubview:_imgView];
+//  
+//  self.window.rootViewController = vc;
+//  [self junk];
+//  
+//  [ServiceFacade instance].delegate = self;
+//  
+//  return YES;
+//}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  
-  UIViewController* vc = [UIViewController new];
-  vc.view.backgroundColor = [UIColor greenColor];
-  
-  _imgView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 500, 500)];
-  [vc.view addSubview:_imgView];
-  
-  self.window.rootViewController = vc;
-  [self junk];
-  return YES;
-}
-
-- (BOOL)____application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
   // Override point for customization after application launch.
   UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
   
@@ -84,6 +114,8 @@
   UINavigationController *masterNavigationController = splitViewController.viewControllers[0];
   MasterViewController *controller = (MasterViewController *)masterNavigationController.topViewController;
   controller.managedObjectContext = self.managedObjectContext;
+  
+  [ServiceFacade instance].delegate = self;
   
   return YES;
 }

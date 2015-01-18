@@ -8,14 +8,14 @@
 
 #import "MasterViewController.h"
 #import "DetailViewController.h"
+#import "ServiceFacade.h"
 #import <iso646.h>
 
 @interface MasterViewController ()
 
 @end
 
-@implementation MasterViewController
-
+@implementation MasterViewController 
 // Documenting my thought process in code
 - (BOOL) fetchingData {
   return (nil == _connection);
@@ -38,29 +38,6 @@
   [_managedObjectContext save:NULL];
 }
 
-- (void) fetchRemoteURL {
-  // Yes! Hardcoding a url is not ideal... but for the purposes of quick delivery...
-  NSURL* url = [NSURL URLWithString:@"http://www.khanacademy.org/api/v1/badges?format=pretty"];
-  
-  
-  // TODO: Ideally I would configure an NSURLSession to periodically re-fetch data in the background and not even have a refresh button,
-  // but for the purposes of completing the task quickly I am resorting to an inferior solution
-  
-  // TODO: Ideally there would be continuous visual feedback about the progress of my sync activity. This could be something non-intrusive and
-  // low-key.
-  
-  
-  
-  ///....
-  
-  if (not [self fetchingData]) {
-    
-  }
-  
-  
-  
-  
-}
 
 #pragma mark -
 
@@ -71,6 +48,15 @@
       self.clearsSelectionOnViewWillAppear = NO;
       self.preferredContentSize = CGSizeMake(320.0, 600.0);
   }
+  
+  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+    [self insertNewObject:nil];
+  }];
+
+}
+
+- (void)refreshButtonAction:(id)sender {
+  [[ServiceFacade instance] refreshIfNotBusy];
 }
 
 - (void)viewDidLoad {
@@ -79,12 +65,13 @@
   self.navigationItem.leftBarButtonItem = self.editButtonItem;
   
   
- // SEL addButtonAction = @selector(insertNewObject:);
-  SEL addButtonAction = @selector(testFetchController_);
+  SEL action = @selector(insertNewObject:);
+  //SEL addButtonAction = @selector(testFetchController_);
+  //SEL action = @selector(refreshButtonAction:);
   UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithTitle:@"Refresh"
                                                                 style:UIBarButtonItemStylePlain
                                                                target:self
-                                                               action:addButtonAction];
+                                                               action:action];
   
   
   //UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRedo target:self action:@selector(insertNewObject:)];
