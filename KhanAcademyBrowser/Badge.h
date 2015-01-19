@@ -10,15 +10,15 @@
 #import <CoreData/CoreData.h>
 
 @protocol Badge <NSObject>
-@property (strong) NSDate* timeStamp;
+@property (strong) NSDate*   timeStamp;
 @property (strong) NSString* absoluteURL;
 @property (strong) NSNumber* categoryId;
 @property (strong) NSString* compactDescription;
 @property (strong) NSString* extendedDescription;
 @property (strong) NSNumber* points;
 @property (strong) NSString* name;
-@property (strong) NSData* smallImage;
-@property (strong) NSData* largeImage;
+@property (strong) NSData*   smallImage;
+@property (strong) NSData*   largeImage;
 @property (strong) NSString* smallImageURL;
 @property (strong) NSString* largeImageURL;
 @end

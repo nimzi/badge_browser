@@ -1,5 +1,5 @@
 #import "Badge.h"
-
+#import <iso646.h>
 //   Sample JSON:
 //
 //        absolute_url" = "http://www.khanacademy.org/badges/challenger";
@@ -46,8 +46,9 @@ id strongCast(id obj, Class clz) {
 
 
 
-
-@interface BadgeProxyImpl : NSObject<Badge>
+// Impl is here because want to wrap atomic properties
+// proxy them
+@interface BadgeProxyImpl : NSObject
 @property (strong) NSDate* timeStamp;
 @property (strong) NSString* absoluteURL;
 @property (strong) NSNumber* categoryId;
@@ -55,8 +56,8 @@ id strongCast(id obj, Class clz) {
 @property (strong) NSString* extendedDescription;
 @property (strong) NSNumber* points;
 @property (strong) NSString* name;
-@property (strong) NSData* smallImage;
-@property (strong) NSData* largeImage;
+//@property (strong) NSData* smallImage;
+//@property (strong) NSData* largeImage;
 @property (strong) NSString* smallImageURL;
 @property (strong) NSString* largeImageURL;
 @end
@@ -142,8 +143,23 @@ id strongCast(id obj, Class clz) {
 
 -(NSString*) largeImageURL { return _impl.largeImageURL; }
 
+//#pragma mark - Non JSON fields -
+//
+//-(void) setSmallImage:(NSData *)smallImage {
+//  _impl.smallImageURL = strongCast(smallImage, [NSData class]);
+//}
+//
+//-(NSData*) smallImage { return _impl.smallImage; }
+//
+//
+//#pragma mark -
+//-(void) setLargeImage:(NSData *)largeImage {
+//  _impl.largeImage = strongCast(largeImage, [NSData class]);
+//}
+//
+//-(NSData*) largeImage { return _impl.largeImage; }
 
-
+#pragma mark -
 
 
 +(instancetype) proxyFromJSON:(NSDictionary*)json {
@@ -176,12 +192,50 @@ id strongCast(id obj, Class clz) {
 
 
 -(void) _findIn:(NSManagedObjectContext*)moc {
+  //NSSortDescriptor* descriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
+  NSFetchRequest* req = [NSFetchRequest new];
+  NSEntityDescription* entity = [NSEntityDescription entityForName:@"Badge" inManagedObjectContext:moc];
+  req.entity = entity;
+  req.predicate = [NSPredicate predicateWithFormat:@"name == %@", _impl.name];
+  NSError* err = nil;
+  NSArray* res = [moc executeFetchRequest:req error:&err];
   
+  if (not err and res.count > 0) {
+    self.badge = res.firstObject;
+  }
 }
 
 
 -(void) _sync {
   if (_badge) {
+    
+    // FIXME: Ideally should get an `hash` value from the server
+    // for images. Then able to determine whether to update images
+    // in the first place
+    
+    NSArray* fields = @[@"timeStamp",
+                        @"absoluteURL",
+                        @"categoryId",
+                        @"compactDescription",
+                        @"extendedDescription",
+                        @"points",
+                        // @"name",
+                        @"smallImageURL",
+                        @"largeImageURL"];
+    
+    for (id keyPath in fields) {
+      id value = [_impl valueForKey:keyPath];
+      [_badge setValue:value forKey:keyPath];
+    }
+    
+    NSArray* specialFields = @[@"smallImage", @"largeImage"];
+    
+    for (id keyPath in specialFields) {
+      id value = [self valueForKey:keyPath];
+      if (value) {
+        [_badge setValue:value forKey:keyPath];
+      }
+    }
     
   }
 }

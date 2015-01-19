@@ -16,31 +16,9 @@
 @interface AppDelegate () <UISplitViewControllerDelegate, ServiceFacadeDelegate>
 @end
 
-@implementation AppDelegate {
-  //NSArray* _sortedBadges;
-}
-
-
-
-#pragma mark -
-
-//-(Badge*) _matchingBadgeForProxy:(BadgeProxy*)proxy {
-//  NSRange range = NSMakeRange(0, _sortedBadges.count);
-//  NSUInteger idx = [_sortedBadges indexOfObject:proxy inSortedRange:range options:NSBinarySearchingFirstEqual
-//                                usingComparator:^NSComparisonResult(id<Badge> l, id<Badge> r) {
-//                                return [l.name compare:r.name];
-//                              }];
-//  
-//  return  (NSNotFound == idx) ? nil : _sortedBadges[idx];
-//}
-//
-//-(void) _upsertProxy:(BadgeProxy*) proxy {
-//  
-//}
+@implementation AppDelegate
 
 #pragma mark ServiceFacadeDelegate
-
-
 
 -(void) serviceFacade:(ServiceFacade*)facade didLoadEntry:(BadgeProxy*)entry {
   NSLog(@"name=%@", entry.name);
@@ -51,7 +29,6 @@
     [entry upsert:self.managedObjectContext];
   
 }
-
 
 -(void) serviceFacade:(ServiceFacade*)facade didLoadLargeImage:(UIImage*)image forEntry:(BadgeProxy*)entry {
   if (entry.name.length > 0)
@@ -67,19 +44,9 @@
 
 -(void) serviceFacadeDidBecomeIdle:(ServiceFacade*)facade {
   [self saveContext];
-  //_sortedBadges = nil;
-  
 }
 
 -(void) serviceFacadeDidBecomeBusy:(ServiceFacade *)facade {
-//  NSSortDescriptor* descriptor = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
-//  NSFetchRequest* req = [NSFetchRequest new];
-//  NSEntityDescription* entity = [NSEntityDescription entityForName:@"Badge" inManagedObjectContext:self.managedObjectContext];
-//  req.entity = entity;
-//  req.sortDescriptors = @[descriptor];
-//  
-//  NSError* err = nil;
-//  _sortedBadges = [self.managedObjectContext executeFetchRequest:req error:&err];
 }
 
 

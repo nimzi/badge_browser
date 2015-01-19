@@ -111,6 +111,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
   
   NSMutableArray* ops = [@[] mutableCopy];
   
+  
   if (entry.name) {
     NSURL* urlForLarge = entry.largeImageURL ? [NSURL URLWithString:entry.largeImageURL] : nil;
     NSURL* urlForSmall = entry.smallImageURL ? [NSURL URLWithString:entry.smallImageURL] : nil;
@@ -151,7 +152,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
         entry.smallImage = UIImagePNGRepresentation(responseObject);    // Should be thread-safe
         [[NSOperationQueue mainQueue] addOperationWithBlock:^{
           [strongSelf.delegate serviceFacade:strongSelf
-                           didLoadLargeImage:responseObject
+                           didLoadSmallImage:responseObject
                                     forEntry:entry];
         }];
       } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
@@ -161,6 +162,7 @@ typedef void (^ProgressBlockType)(NSUInteger numberOfFinishedOperations, NSUInte
       [ops addObject:op];
     }
   }
+  
   
   return ops;
 }

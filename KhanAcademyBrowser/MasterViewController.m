@@ -50,9 +50,9 @@
     self.preferredContentSize = CGSizeMake(320.0, 600.0);
   }
   
-  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-    [self insertNewObject:nil];
-  }];
+//  [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+//    [self insertNewObject:nil];
+//  }];
   
 }
 
@@ -110,9 +110,9 @@
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
   if ([[segue identifier] isEqualToString:@"showDetail"]) {
-    NSIndexPath *indexPath = [self.tableView indexPathForSelectedRow];
-    NSManagedObject *object = [[self fetchedResultsController] objectAtIndexPath:indexPath];
-    DetailViewController *controller = (DetailViewController *)[[segue destinationViewController] topViewController];
+    NSIndexPath* indexPath = [self.tableView indexPathForSelectedRow];
+    Badge* object = [[self fetchedResultsController] objectAtIndexPath:indexPath];
+    DetailViewController* controller = (DetailViewController *)[[segue destinationViewController] topViewController];
     [controller setDetailItem:object];
     controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
     controller.navigationItem.leftItemsSupplementBackButton = YES;
@@ -158,7 +158,12 @@
 
 - (void)configureCell:(UITableViewCell *)cell atIndexPath:(NSIndexPath *)indexPath {
   Badge* object = [self.fetchedResultsController objectAtIndexPath:indexPath];
-  cell.textLabel.text = object.name;
+  cell.textLabel.text = object.compactDescription;
+  
+  if (object.smallImage) {
+    cell.imageView.image = [UIImage imageWithData:object.smallImage];
+  }
+  
 }
 
 #pragma mark - Fetched results controller
