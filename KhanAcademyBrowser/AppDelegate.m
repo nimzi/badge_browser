@@ -16,7 +16,9 @@
 @interface AppDelegate () <UISplitViewControllerDelegate, ServiceFacadeDelegate>
 @end
 
-@implementation AppDelegate
+@implementation AppDelegate {
+  MasterViewController* _masterController;
+}
 
 #pragma mark ServiceFacadeDelegate
 
@@ -44,9 +46,12 @@
 
 -(void) serviceFacadeDidBecomeIdle:(ServiceFacade*)facade {
   [self saveContext];
+  [_masterController enableRefresh];
 }
 
 -(void) serviceFacadeDidBecomeBusy:(ServiceFacade *)facade {
+  [_masterController disableRefresh];
+  
 }
 
 
@@ -64,8 +69,8 @@
   splitViewController.delegate = self;
 
   UINavigationController *masterNavigationController = splitViewController.viewControllers[0];
-  MasterViewController *controller = (MasterViewController *)masterNavigationController.topViewController;
-  controller.managedObjectContext = self.managedObjectContext;
+  _masterController = (MasterViewController *)masterNavigationController.topViewController;
+  _masterController.managedObjectContext = self.managedObjectContext;
   
   [ServiceFacade instance].delegate = self;
   

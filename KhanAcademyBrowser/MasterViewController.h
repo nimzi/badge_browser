@@ -22,5 +22,8 @@
 // Insist on atomic just in case...
 @property (strong) NSURLConnection* connection;
 
+
+-(void) enableRefresh;
+-(void) disableRefresh;
 @end
 

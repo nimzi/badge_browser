@@ -13,10 +13,12 @@
 #import <iso646.h>
 
 @interface MasterViewController ()
-
 @end
 
-@implementation MasterViewController
+@implementation MasterViewController {
+   __weak UIBarButtonItem* _refreshButton;
+}
+
 // Documenting my thought process in code
 - (BOOL) fetchingData {
   return (nil == _connection);
@@ -74,10 +76,22 @@
                                                                target:self
                                                                action:action];
   
+
+  
   
   //UIBarButtonItem *addButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRedo target:self action:@selector(insertNewObject:)];
   self.navigationItem.rightBarButtonItem = addButton;
   self.detailViewController = (DetailViewController *)[[self.splitViewController.viewControllers lastObject] topViewController];
+  
+  _refreshButton = addButton;
+}
+
+-(void) disableRefresh {
+  _refreshButton.enabled = NO;
+}
+
+-(void) enableRefresh {
+  _refreshButton.enabled = YES;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -114,6 +128,7 @@
     Badge* object = [[self fetchedResultsController] objectAtIndexPath:indexPath];
     DetailViewController* controller = (DetailViewController *)[[segue destinationViewController] topViewController];
     [controller setDetailItem:object];
+    controller.navigationItem.title = object.compactDescription;
     controller.navigationItem.leftBarButtonItem = self.splitViewController.displayModeButtonItem;
     controller.navigationItem.leftItemsSupplementBackButton = YES;
   }
@@ -164,6 +179,31 @@
     cell.imageView.image = [UIImage imageWithData:object.smallImage];
   }
   
+  //cell.accessoryView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 10, 10)];
+  //cell.accessoryView.backgroundColor = [UIColor redColor];
+  
+  if (not cell.accessoryView) {
+    cell.accessoryView = [[UILabel alloc] initWithFrame:CGRectZero];
+  }
+  
+  UILabel* accessoryView = ((UILabel*)cell.accessoryView);
+  
+  accessoryView.text = (nil == object.points) ? @"0" : object.points.description;
+  accessoryView.textColor = [UIColor whiteColor];
+  accessoryView.textAlignment = NSTextAlignmentCenter;
+  [accessoryView sizeToFit];
+  
+  CGRect frame = accessoryView.frame;
+  accessoryView.frame = CGRectInset(frame, -10, -5);
+  
+  accessoryView.backgroundColor = [UIColor redColor];
+  accessoryView.font =  [UIFont fontWithName:@"HelveticaNeue-Bold" size:16.0f];
+  accessoryView.layer.cornerRadius = 12;
+  accessoryView.layer.borderColor = [UIColor orangeColor].CGColor;
+  accessoryView.layer.borderWidth = 2;
+  [accessoryView.layer setMasksToBounds:YES];
+  
+  
 }
 
 #pragma mark - Fetched results controller
@@ -205,8 +245,12 @@
     abort();
   }
   
+  [self _updateTitle];
+  
   return _fetchedResultsController;
 }
+
+
 
 - (void)controllerWillChangeContent:(NSFetchedResultsController *)controller
 {
@@ -258,9 +302,13 @@
 
 - (void)controllerDidChangeContent:(NSFetchedResultsController *)controller
 {
+  [self _updateTitle];
   [self.tableView endUpdates];
 }
 
+- (void) _updateTitle {
+    self.navigationItem.title = [@(self.fetchedResultsController.fetchedObjects.count).description stringByAppendingString:@" badges"];
+}
 /*
  // Implementing the above methods to update the table view in response to individual changes may have performance implications if a large number of changes are made simultaneously. If this proves to be an issue, you can instead just implement controllerDidChangeContent: which notifies the delegate that all section and object changes have been processed.
  
