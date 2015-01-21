@@ -73,6 +73,7 @@ id strongCast(id obj, Class clz) {
 
 @implementation BadgeProxy
 - (instancetype)init {
+  self = [super init];
   _impl = [BadgeProxyImpl new];
   return self;
 }
